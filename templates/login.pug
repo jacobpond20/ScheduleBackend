@@ -1,0 +1,14 @@
+html 
+    head 
+        title=title
+    body 
+        .login_box_outer 
+            h1="Login"
+            .login_box_inner 
+                form(action="/login" method="POST")
+                    p="Username: " 
+                    input(type="text" name="username")
+                    p="Password: " 
+                    input(type="text" name="password")
+                    input(type="submit")
+                    a(class='button', href='/createUser') Create New User
