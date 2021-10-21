@@ -1,7 +1,6 @@
 const express = require('express');
 const connectDB = require('./connect')
 const pug = require('pug');
-const bodyParser = require('body-parser');
 
 //Import Routes
 const loginRoute = require('./routes/login');
