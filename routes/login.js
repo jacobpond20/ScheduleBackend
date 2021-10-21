@@ -8,16 +8,17 @@ var login = pug.compileFile('./templates/login.pug');
 var home = pug.compileFile('./templates/home.pug');
 
 router.get('/', (req,res) => {
-    res.send(login());
+    res.render('../templates/login', {});
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     var user = req.body.username;
     var pass = req.body.password;
-    if(User.findOne({username: user, password: pass}) != null){
-        res.send("You have been logged in");
+    var x = await User.findOne({username: user, password: pass});
+    if(x != null){
+        res.render('../templates/loginHome', {});                                                     //Login user
     }else{
-        res.send(login());
+        res.render('../templates/login', {});
     }
 });
 

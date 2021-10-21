@@ -1,0 +1,23 @@
+html 
+    head 
+        title=title
+        script(src='../static/scripts.js')
+    body 
+        form(action='/createPerson' method='post')
+            p Name: 
+            input(type='text' name='name')
+            br
+            p Hours: 
+            input(type='Number' name='hours')
+            br
+            p Role: 
+            input(type='text' name='role')
+            br
+            p Corresponding User: 
+            select#user(name='user')
+                each u in users
+                    option(value=u._id) #{u.username}
+            br
+            br
+            button(type="submit") Submit
+                

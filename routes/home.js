@@ -6,10 +6,10 @@ const router = express.Router();
 var home = pug.compileFile('./templates/home.pug');
 
 router.get('/', (req, res) => {
-    res.send(home({
+    res.render('../templates/home', {
         title: 'Home Page',
         message: 'This is working?'
-    }));
+    });
 });
 
 module.exports = router;
