@@ -1,24 +1,28 @@
 const express = require('express');
-const pug = require('pug');
 const User = require('../models/user');
+const bcrypt = require('bcrypt');
+const Person = require('../models/person');
 
 const router = express.Router();
 
-var login = pug.compileFile('./templates/login.pug');
-var home = pug.compileFile('./templates/home.pug');
-
 router.get('/', (req,res) => {
-    res.render('../templates/login', {});
+    res.status(204).send();
 });
 
 router.post('/', async (req, res) => {
-    var user = req.body.username;
-    var pass = req.body.password;
-    var x = await User.findOne({username: user, password: pass});
-    if(x != null){
-        res.render('../templates/loginHome', {});                                                     //Login user
-    }else{
-        res.render('../templates/login', {});
+    var user = await User.findOne({username: req.body.username});
+    if(user == null){
+        return res.status(404).send('Cannot find user')
+    }
+    let person = await Person.findOne({user: user})
+    try {
+        if (await bcrypt.compare(req.body.password, user.password)){
+            return res.status(200).json(person);
+        } else {
+            return res.status(404).send('Incorrect username or password');
+        }
+    } catch {
+        res.status(500).send('Error while bcrypt comparing passwords')
     }
 });
 

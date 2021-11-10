@@ -1,15 +1,8 @@
 const express = require('express');
-const pug = require('pug');
 const router = express.Router();
 
-//Create home() pug function
-var home = pug.compileFile('./templates/home.pug');
-
 router.get('/', (req, res) => {
-    res.render('../templates/home', {
-        title: 'Home Page',
-        message: 'This is working?'
-    });
+    res.status(204).send();
 });
 
 module.exports = router;

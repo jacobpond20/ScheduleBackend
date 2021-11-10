@@ -1,0 +1,9 @@
+html 
+    head 
+
+    body 
+        form(action='/viewPeople', method='post')
+            each p in people
+                p #{p.name} 
+                input(type="submit" name='p.name' value="Edit")
+                br

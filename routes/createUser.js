@@ -1,27 +1,24 @@
 const express = require('express');
-const pug = require('pug');
 const router = express.Router();
 const User = require('../models/user');
+const bcrypt = require('bcrypt');
 
-//Create home() pug function
-var createUser = pug.compileFile('./templates/createUser.pug');
 
 router.get('/', (req, res) => {
-    res.send(createUser());
+    res.status(204).send();
 });
 
 router.post('/', async (req, res) => {
-    let x = await User.find({username: req.body.username});
-    console.log(x);
-    if(x.length == 0){
+    let x = await User.findOne({username: req.body.username});
+    if(x == null){
         const user = new User({
         username: req.body.username,
-        password: req.body.password
+        password: await bcrypt.hash(req.body.password, await bcrypt.genSalt())
         });
         user.save();
-        res.send("Successful");
+        res.status(201).json(user);
     }else {
-        res.render("../templates/createUser", {message: "User with that username already exists"});
+        res.status(409).send("That user already exists");
     }
 });
 

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const db = require('mongodb').Db;
 
 //const uri = "mongodb://localhost:27017/CompanyTracker?retryWrites=true&w=majority"; //test for capstone
 const uri = "mongodb+srv://user1:user1@scheduleapp.dw63x.mongodb.net/ScheduleApp?retryWrites=true&w=majority";
