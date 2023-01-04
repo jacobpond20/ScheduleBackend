@@ -4,11 +4,16 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
 
-router.get('/', (req, res) => {
-    res.status(204).send();
+router.get('/:username', async (req, res) => {
+    let user = await User.findOne({username: req.body.username});
+    if(user == null){
+        res.status(204);
+    }else{
+       res.status(200).json(user); 
+    }
 });
 
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
     let x = await User.findOne({username: req.body.username});
     if(x == null){
         const user = new User({

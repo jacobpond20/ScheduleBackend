@@ -87,10 +87,11 @@ router.post('/', async (req, res) => {
     });
     try {
         person.save();
-        res.status(201).json(person);
+        res.sendStatus(201);
 
     } catch (err) {
         console.log(err);
+        res.send(err);
     }
 });
 

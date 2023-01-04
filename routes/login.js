@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
     let person = await Person.findOne({user: user})
     try {
         if (await bcrypt.compare(req.body.password, user.password)){
-            return res.status(200).json(person);
+            return res.sendStatus(200);
         } else {
             return res.status(404).send('Incorrect username or password');
         }
