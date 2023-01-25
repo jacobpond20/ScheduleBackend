@@ -1,20 +1,52 @@
 const express = require('express');
+const Mongoose = require('mongoose');
 const person = require('../models/person');
 const router = express.Router();
 const Shift = require('../models/shift');
 const Avail = require('../models/availability');
+const Week = require('../models/week');
+const DayShift = require('../models/dayShift');
+const Hours = require('../models/hours');
 
-router.get('/', (req, res) => {
-    res.status(204).send();
+router.get('/all', async (req, res) => {
+    let shifts = await Shift.find();
+    res.status(200).json(shifts);
 });
 
-router.post('/', async (req,res) => {
-    let shift = new Shift({
+router.post('/create', async (req,res) => {
+    if(req.body.role == "" ||
+       req.body.name == "")
+    {
+        res.json({message: "Role and name must be filled with valid value"});
+        return;
+    }
+    if(req.body.mon == false &&
+        req.body.tue == false &&
+        req.body.wed == false &&
+        req.body.thu == false &&
+        req.body.fri == false &&
+        req.body.sat == false &&
+        req.body.sun == false)
+    {
+        res.json({message: "At least one day of the week must be selected for shift to be valid."})
+        return;
+    }
+    let hours = req.body.end - req.body.start;
+    if(hours == 0){
+        res.json({message: "Shift must be at least 1 hour."});
+        return;
+    }
+    let shift = await Shift.find({name: req.body.name, role: req.body.role});
+    if(shift.length != 0){
+        res.json({message: "Shift with that name/role already exists for that role."});
+        return;
+    }
+    shift = new Shift({
         name: req.body.name,
         role: req.body.role,
         start: req.body.start,
         end: req.body.end,
-        hours: req.body.hours,
+        hours: hours,
         mon: req.body.mon,
         tue: req.body.tue,
         wed: req.body.wed,
@@ -65,7 +97,8 @@ router.post('/', async (req,res) => {
                 };
             };
             p.save();
-        };
+        }
+        
         res.status(201).json(shift);
     } catch (err) {
         res.send(err);

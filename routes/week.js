@@ -6,32 +6,53 @@ const Week = require('../models/week');
 const Hours = require('../models/hours.js');
 const DayShift = require('../models/dayShift');
 const Shift = require('../models/shift');
+const Mongoose = require('mongoose');
+
+router.get('/all', async (req, res) => {
+    let weeks = await Week.find();
+    if(weeks.length == 0){
+        res.status(202).json({message: "No weeks found"});
+        return;
+    }
+    let current = await Week.findOne({startDate: {$lte: Date.now()}, endDate: {$gte: Date.now()}});
+    if(current == null){
+        current = await Week.findOne({startDate: {$gte: Date.now()}});
+        res.status(200).json({weeks: weeks, currentWeek: current, message: "Current"})
+    }else{
+        res.status(200).json({weeks: weeks, currentWeek: current, message: "Current"});
+    }
+});
+
+router.get('/current', async (req, res) => {
+    let week = await Week.findOne({startDate: {$lte: Date.now()}, endDate: {$gte: Date.now()}});
+    if(week == null){
+        res.status(202).json({message: "No schedule has been generated for current week"});
+        return;
+    }
+    res.status(200).json(week);
+});
 
 router.post('/generate', async (req, res) => {
-    if(await Week.findOne({name: req.body.name}) != null){
+    if(await Week.findOne({name: req.body.scheduleName}) != null){
         res.status(406).send("That week already exists in database.");
-    }
-    const generator = new Generate.generator();
-    let week = new Week({name: req.body.name});
-    week.save();
-    for(const p of await Person.find()){
-        let h = new Hours({
-            week: week._id,
-            person: p._id,
-            hours: p.hours
-        });
-        h.save();
-    };
-    let array = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-    for(const a of array){
-        await generator.genDay(a, week)
-        .then((result) => {
-            if(result == 'error1'){
-                res.status(406).send("Nobody available for shift on monday.");
-            }
-        });    
-    }
-    res.json(week);
+    }else{
+        const generator = new Generate.generator();
+        let week = new Week({name: req.body.scheduleName, startDate: req.body.startDate, endDate: req.body.endDate});
+        week.save();
+        for(const p of await Person.find()){
+            let h = new Hours({
+                week: week._id,
+                person: p._id,
+                hours: p.hours
+            });
+            h.save();
+        };
+        let array = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+        for(const a of array){
+            await generator.genDay(a, week);    
+        }
+        res.json(week);
+    }    
 });
 
 
@@ -65,15 +86,17 @@ router.post('/redo', async (req, res) => {          //recieves week{} json objec
 });
 
 router.post('/delete', async (req, res) => {
-    let week = await Week.findOne({name: req.body.name});
-    for(const d of await DayShift.find({week: week._id})){
-        d.delete();
+    let rawID = req.body.weekID;
+    let id = Mongoose.Types.ObjectId(req.body.weekID);
+    if(id == null){
+        res.status(202).json({message: "Issue finding week with provided id: " + id});
+        return;
     }
-    for(const h of await Hours.find({week: week._id})){
-        h.delete();
-    }
-    week.delete();
-    res.status(200).send("Week deleted.");
+    let week = await Week.findOne({_id: id});
+    await DayShift.deleteMany({week: week._id});
+    await Hours.deleteMany({week: week._id});
+    await Week.deleteOne({_id: week._id});
+    res.status(200);
 });
 
 module.exports = router;

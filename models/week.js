@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 
 const WeekSchema = mongoose.Schema({
-    name: String
+    name: String,
+    startDate: Date,
+    endDate: Date
     /*,
     mon: mongoose.Schema.Types.ObjectId,
     tue: mongoose.Schema.Types.ObjectId,

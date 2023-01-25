@@ -1,13 +1,17 @@
 const express = require('express');
 const User = require('../models/user');
 const Person = require('../models/person');
+const availability = require('../models/availability');
 
 const router = express.Router();
 
 
 router.get('/', async (req,res) => {
     let ppl = await Person.find();
-    res.json(ppl);
+    if(ppl.length == 0){
+        res.status(202).json({message: "No people found"})
+    }
+    res.status(200).json(ppl);
 });
 
 router.get('/:username', async (req, res) => {
