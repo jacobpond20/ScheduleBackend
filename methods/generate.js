@@ -4,6 +4,7 @@ const Shift = require('../models/shift');
 const Person = require('../models/person');
 const Avail = require('../models/availability');
 const Hours = require('../models/hours.js');
+const Mongoose = require('mongoose');
 
 class generator{
 /*
@@ -11,30 +12,31 @@ class generator{
     };
 */
     async genDay(day, week){
-
         let scheduled = [];
         let shiftQuery = {};
         shiftQuery[day] = true;
         let shifts = await Shift.find(shiftQuery);
-        for(const s of shifts){
+
+        //Loop through all shifts for current day
+        for(const s of shifts){ 
             let done = false;
             var availQuery = {};
             availQuery[day] = s._id;
             let unscheduled = await Avail.find(availQuery);
+
+            //Remove any avails that have already been scheduled for this day
             for(let i = 0; i < scheduled.length; i++){
-                if(unscheduled.find(element => element._id == scheduled[i]) != undefined){
-                    unscheduled.splice(unscheduled.findIndex(scheduled[i]), 1);
+                for(let j = 0; j < unscheduled.length; j++){
+                    if(Mongoose.Types.ObjectId(scheduled[i]._id).equals(Mongoose.Types.ObjectId(unscheduled[j]._id))){
+                        unscheduled.splice(j, 1);
+                    }
                 }
             }
-            let counter = 0;
-            do{                
-                console.log(counter);
-                if(counter > 10){
-                    done = true;
-                    continue;
-                }
-                counter++;
-                
+            
+            do{
+                if(unscheduled.length == 0){
+                    break;
+                }                
                 let index = Math.floor(Math.random() * unscheduled.length);
                 /*
                 let a = await Avail.aggregate([                         
@@ -49,17 +51,6 @@ class generator{
                 }
                 */
                 let p = await Person.findOne({availability: unscheduled[index]._id});
-                
-                let cont = false;                                              //if set to true, same person has been selected for multiple shifts in a single day
-                for(const sch of scheduled){
-//                    console.log('p_id: ' + p._id + ' v: ' + v);
-                    if(sch.equals(p._id)){
-                        console.log("Same person two days, should continue now. Day: " + day);
-                        cont = true;                                        //Continue through outer do/while loop to find new person, because person selected has already been scheduled for this day.
-                        continue;
-                    }
-                }
-                if(cont == true){continue;}                                //continue to refresh person
                 let ph = await Hours.findOne({person: p._id, week: week._id})
                 if(ph.hours - s.hours >= 0){
                     ph.hours = ph.hours - s.hours;
@@ -71,9 +62,11 @@ class generator{
                         week: week._id
                     });
                     d.save();
-                    scheduled.push(p._id);
+                    scheduled.push(unscheduled[index]);
                     done = true;
-                };
+                }else{
+                    unscheduled.splice(index, 1);
+                }
             }while(done == false);
         };
         return 0;
